@@ -53,11 +53,12 @@
 
 DetectorConstruction::DetectorConstruction()
 :G4VUserDetectorConstruction(),
- fPBox(0), fLBox(0), fMaterial(0), fDetectorMessenger(0)
+ fPShield(0), fLShield(0), fMaterial(0), fDetectorMessenger(0)
 {
-  fBoxSize = 1*m;
+  //fBoxSize = 1*m;
+  ShThick = 15*cm;
   DefineMaterials();
-  SetMaterial("Galactic");  
+  SetMaterial("polyethylene");  
   fDetectorMessenger = new DetectorMessenger(this);
 }
 
@@ -181,35 +182,37 @@ G4VPhysicalVolume* DetectorConstruction::ConstructVolumes()
   auto Vacc = G4Material::GetMaterial("Galactic");
 
   // world
+  fBoxSize = 1*m;
+
   G4Box*
-  sBox = new G4Box("Container",                         //its name
+  sBox = new G4Box("world",                             //its name
                    fBoxSize/2,fBoxSize/2,fBoxSize/2);   //its dimensions
 
-  fLBox = new G4LogicalVolume(sBox,                     //its shape
-                             fMaterial,                 //its material
-                             fMaterial->GetName());     //its name
+  auto fLBox = new G4LogicalVolume(sBox,                     //its shape
+                             Vacc,                      //its material
+                             "World");                  //its name
 
-  fPBox = new G4PVPlacement(0,                          //no rotation
+  auto fPBox = new G4PVPlacement(0,                          //no rotation
                             G4ThreeVector(),            //at (0,0,0)
                             fLBox,                      //its logical volume
-                            fMaterial->GetName(),                    //its name
+                            "World",                    //its name
                             0,                          //its mother  volume
                             false,                      //no boolean operation
                             0);                         //copy number
 
   // shielding
-  G4double ShThick = 15*cm;
+  //ShThick = 15*cm;
   G4double ShSize = 100*cm;
   G4double ShPos = 7.5*cm;
 
   G4Box* sShield = new G4Box("shield",
                     ShThick/2,ShSize/2,ShSize/2);
 
-  auto fLShield = new G4LogicalVolume(sShield,
-                                      polyethylene,
+  fLShield = new G4LogicalVolume(sShield,
+                                      fMaterial,
                                       "Shield");
 
-  auto fPShield = new G4PVPlacement(0,
+  fPShield = new G4PVPlacement(0,
                                     G4ThreeVector(ShPos,0.*cm,0.*cm),
                                     fLShield,
                                     "Shield",
@@ -229,7 +232,7 @@ G4VPhysicalVolume* DetectorConstruction::ConstructVolumes()
 void DetectorConstruction::PrintParameters()
 {
   G4cout << "\n The Box is " << G4BestUnit(fBoxSize,"Length")
-         << " of " << fMaterial->GetName() 
+         << " of " << "Galactic" 
          << "\n \n" << fMaterial << G4endl;
 }
 
@@ -244,7 +247,7 @@ void DetectorConstruction::SetMaterial(G4String materialChoice)
   if (pttoMaterial) { 
     if(fMaterial != pttoMaterial) {
       fMaterial = pttoMaterial;
-      if(fLBox) { fLBox->SetMaterial(pttoMaterial); }
+      if(fLShield) { fLShield->SetMaterial(pttoMaterial); }
       G4RunManager::GetRunManager()->PhysicsHasBeenModified();
     }
   } else {
@@ -257,7 +260,7 @@ void DetectorConstruction::SetMaterial(G4String materialChoice)
 
 void DetectorConstruction::SetSize(G4double value)
 {
-  fBoxSize = value;
+  ShThick = value;
   G4RunManager::GetRunManager()->ReinitializeGeometry();
 }
 
