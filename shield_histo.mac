@@ -19,17 +19,17 @@
 /score/mesh/boxSize 0.1 50 50 cm
 /score/mesh/translate/xyz 45 0 0 cm
 /score/mesh/nBin 50 50 50
-/score/quantity/nOfTrack re0
+/score/quantity/passageCellCurrent re0
 /score/filter/particleWithKineticEnergy rr0 0 500 eV neutron
-/score/quantity/nOfTrack re1
+/score/quantity/passageCellCurrent re1
 /score/filter/particleWithKineticEnergy rr1 0.5 1 keV neutron
-/score/quantity/nOfTrack re2
+/score/quantity/passageCellCurrent re2
 /score/filter/particleWithKineticEnergy rr2 1 500 keV neutron
-/score/quantity/nOfTrack re3
+/score/quantity/passageCellCurrent re3
 /score/filter/particleWithKineticEnergy rr3 0.5 1 MeV neutron
-/score/quantity/nOfTrack re4
+/score/quantity/passageCellCurrent re4
 /score/filter/particleWithKineticEnergy rr4 1 2 MeV neutron
-/score/quantity/nOfTrack reT
+/score/quantity/passageCellCurrent reT
 /score/filter/particle rrT neutron
 /score/close
 #
@@ -37,17 +37,17 @@
 /score/mesh/boxSize 0.1 50 50 cm
 /score/mesh/translate/xyz -45 0 0 cm
 /score/mesh/nBin 50 50 50
-/score/quantity/nOfTrack fe0
+/score/quantity/passageCellCurrent fe0
 /score/filter/particleWithKineticEnergy fr0 0 500 eV neutron
-/score/quantity/nOfTrack fe1
+/score/quantity/passageCellCurrent fe1
 /score/filter/particleWithKineticEnergy fr1 0.5 1 keV neutron
-/score/quantity/nOfTrack fe2
+/score/quantity/passageCellCurrent fe2
 /score/filter/particleWithKineticEnergy fr2 1 500 keV neutron
-/score/quantity/nOfTrack fe3
+/score/quantity/passageCellCurrent fe3
 /score/filter/particleWithKineticEnergy fr3 0.5 1 MeV neutron
-/score/quantity/nOfTrack fe4
+/score/quantity/passageCellCurrent fe4
 /score/filter/particleWithKineticEnergy fr4 1 2 MeV neutron
-/score/quantity/nOfTrack feT
+/score/quantity/passageCellCurrent feT
 /score/filter/particle frT neutron
 /score/close
 #
