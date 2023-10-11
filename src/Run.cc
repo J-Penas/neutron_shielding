@@ -35,6 +35,10 @@
 #include "PrimaryGeneratorAction.hh"
 #include "HistoManager.hh"
 
+#include "G4SDManager.hh"
+#include "G4Event.hh"
+#include "G4THitsMap.hh"
+
 #include "G4UnitsTable.hh"
 #include "G4SystemOfUnits.hh"
 
@@ -45,8 +49,12 @@ Run::Run(DetectorConstruction* det)
   fDetector(det), fParticle(0), fEkin(0.),
   fNbStep1(0), fNbStep2(0),
   fTrackLen1(0.), fTrackLen2(0.),
-  fTime1(0.),fTime2(0.)
+  fTime1(0.),fTime2(0.),
+  re0ID(0),re1ID(0),re2ID(0),re3ID(0),re4ID(0),re5ID(0),reTID(0),
+  nEvent(0),
+  re0(),re1(),re2(),re3(),re4(),re5(),reT()
 { }
+
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
 Run::~Run()
@@ -104,6 +112,42 @@ void Run::SumTrackLength(G4int nstep1, G4int nstep2,
   fNbStep1   += nstep1;  fNbStep2   += nstep2;
   fTrackLen1 += trackl1; fTrackLen2 += trackl2;
   fTime1 += time1; fTime2 += time2;  
+}
+
+//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
+
+void Run::RecordEvent(const G4Event* evt)
+{
+  
+  //identify each hitcollection
+  re0ID = G4SDManager::GetSDMpointer()->GetCollectionID("score_r/re0");
+  re1ID = G4SDManager::GetSDMpointer()->GetCollectionID("score_r/re1");
+  re2ID = G4SDManager::GetSDMpointer()->GetCollectionID("score_r/re2");
+  re3ID = G4SDManager::GetSDMpointer()->GetCollectionID("score_r/re3");
+  re4ID = G4SDManager::GetSDMpointer()->GetCollectionID("score_r/re4");
+  re5ID = G4SDManager::GetSDMpointer()->GetCollectionID("score_r/re5");
+  reTID = G4SDManager::GetSDMpointer()->GetCollectionID("score_r/reT");
+
+  //get hitcollection of each score
+  G4HCofThisEvent* HCE = evt->GetHCofThisEvent();
+  G4THitsMap<G4double>* evt_re0 = (G4THitsMap<G4double>*)(HCE->GetHC(re0ID));
+  G4THitsMap<G4double>* evt_re1 = (G4THitsMap<G4double>*)(HCE->GetHC(re1ID));
+  G4THitsMap<G4double>* evt_re2 = (G4THitsMap<G4double>*)(HCE->GetHC(re2ID));
+  G4THitsMap<G4double>* evt_re3 = (G4THitsMap<G4double>*)(HCE->GetHC(re3ID));
+  G4THitsMap<G4double>* evt_re4 = (G4THitsMap<G4double>*)(HCE->GetHC(re4ID));
+  G4THitsMap<G4double>* evt_re5 = (G4THitsMap<G4double>*)(HCE->GetHC(re5ID));
+  G4THitsMap<G4double>* evt_reT = (G4THitsMap<G4double>*)(HCE->GetHC(reTID));
+
+  //fill the scores with the number of events
+  re0 += *evt_re0;
+  re1 += *evt_re1;
+  re2 += *evt_re2;
+  re3 += *evt_re3;
+  re4 += *evt_re4;
+  re5 += *evt_re5;
+  reT += *evt_reT;
+
+  G4Run::RecordEvent(evt);
 }
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
@@ -166,6 +210,15 @@ void Run::Merge(const G4Run* run)
     }   
   }
 
+  //accumulate score counts
+  re0 += (localRun->re0);
+  re1 += (localRun->re1);
+  re2 += (localRun->re2);
+  re3 += (localRun->re3);
+  re4 += (localRun->re4);
+  re5 += (localRun->re5);
+  reT += (localRun->reT);
+
   G4Run::Merge(run); 
 } 
 
@@ -184,7 +237,7 @@ void Run::EndOfRun()
   G4String Particle = fParticle->GetParticleName();    
   G4cout << "\n The run is " << numberOfEvent << " "<< Particle << " of "
          << G4BestUnit(fEkin,"Energy") << " through " 
-         << G4BestUnit(0.5*(fDetector->GetSize()),"Length") << " of "
+         << G4BestUnit((fDetector->GetSize()),"Length") << " of "
          << material->GetName() << " (density: " 
          << G4BestUnit(density,"Volumic Mass") << ")" << G4endl;
 
@@ -258,6 +311,53 @@ void Run::EndOfRun()
            << " --> " << G4BestUnit(eMax, "Energy") 
            << ")" << G4endl;           
  }
+
+ //print score results
+
+ //auto m0 = re0.GetMap();
+ //G4int N0 = *(m0.second);
+ G4double N0;
+ G4double N1;
+ G4double N2;
+ G4double N3;
+ G4double N4;
+ G4double N5;
+ G4double NT;
+
+  for ( auto it0 : *re0.GetMap() ) {
+    N0 += *(it0.second);
+  }
+  for ( auto it1 : *re1.GetMap() ) {
+    N1 += *(it1.second);
+  }
+  for ( auto it2 : *re2.GetMap() ) {
+    N2 += *(it2.second);
+  }
+  for ( auto it3 : *re3.GetMap() ) {
+    N3 += *(it3.second);
+  }
+  for ( auto it4 : *re4.GetMap() ) {
+    N4 += *(it4.second);
+  }
+  for ( auto it5 : *re5.GetMap() ) {
+    N5 += *(it5.second);
+  }
+  for ( auto itT : *reT.GetMap() ) {
+    NT += *(itT.second);
+  }
+  // hitsMap->GetMap() returns the map of std::map<G4int, G4double*>
+
+
+ G4cout << "\n Number of events: " << numberOfEvent << G4endl;
+ G4cout << " Rear side ------------------" << G4endl;
+ G4cout << "\n E:\t    0 eV - 1 eV     : " << N0 << G4endl;
+ G4cout << " E:\t    1 eV - 500 eV   : " << N1 << G4endl;
+ G4cout << " E:\t 0.5 keV - 1 keV    : " << N2 << G4endl;
+ G4cout << " E:\t   1 keV - 500 keV  : " << N3 << G4endl;
+ G4cout << " E:\t 0.5 MeV - 1 MeV    : " << N4 << G4endl;
+ G4cout << " E:\t   1 MeV - 2 MeV    : " << N5 << G4endl;
+ G4cout << " Total number: " << NT << G4endl;
+ G4cout << "\n ----------------------------" << G4endl;
  
   //normalize histograms      
   ////G4AnalysisManager* analysisManager = G4AnalysisManager::Instance();

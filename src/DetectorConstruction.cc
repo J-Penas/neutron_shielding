@@ -46,6 +46,12 @@
 #include "G4SolidStore.hh"
 #include "G4RunManager.hh"
 
+#include "G4SDManager.hh"
+#include "G4MultiFunctionalDetector.hh"
+#include "G4VPrimitiveScorer.hh"
+#include "G4PSPassageCellCurrent.hh"
+#include "G4SDParticleWithEnergyFilter.hh"
+
 #include "G4UnitsTable.hh"
 #include "G4SystemOfUnits.hh"
 
@@ -134,12 +140,28 @@ void DetectorConstruction::DefineMaterials()
   G4Material* iron = new G4Material("iron", 7.874*g/cm3, ncomponents=1, kStateSolid, 293*kelvin, 1*atmosphere);
   iron->AddElement(Fe, natoms=1);
 
+  // boron
+  G4Isotope* B10 = new G4Isotope("B10", 5, 10);
+  G4Isotope* B11 = new G4Isotope("B11", 5, 11);
+  G4Element* B = new G4Element("Boron", "B", ncomponents=2);
+  B->AddIsotope(B10, 19.9*perCent);
+  B->AddIsotope(B11, 80.1*perCent);
+  G4Material* boron = new G4Material("boron", 2.46*g/cm3, ncomponents=1, kStateSolid,293*kelvin, 1*atmosphere);
+  boron->AddElement(B, natoms=1);
+
   // polyethilene
   G4Element* Hpe = new G4Element("TS_H_of_Polyethylene", "H", 1, 1.0079*g/mole);
   G4Element* Cpe = new G4Element("Carbon", "C", 6, 12.01*g/mole);
   G4Material* polyethylene = new G4Material("polyethylene", 0.93*g/cm3, ncomponents=2, kStateSolid, 293*kelvin, 1*atmosphere);
   polyethylene->AddElement(Hpe, natoms=4);
   polyethylene->AddElement(Cpe, natoms=2);
+
+  // borated polyethilene
+  G4Material* b_polyethylene = new G4Material("b_polyethylene",0.94*g/cm3,ncomponents=4,kStateSolid,293*kelvin,1*atmosphere);
+  b_polyethylene->AddElement(Hpe, 11.6*perCent);
+  b_polyethylene->AddElement(Cpe, 61.2*perCent);
+  b_polyethylene->AddElement(B, 5*perCent);
+  b_polyethylene->AddElement(O, 22.2*perCent);
   
  ///G4cout << *(G4Material::GetMaterialTable()) << G4endl;
 }
@@ -203,7 +225,7 @@ G4VPhysicalVolume* DetectorConstruction::ConstructVolumes()
   // shielding
   //ShThick = 15*cm;
   G4double ShSize = 100*cm;
-  G4double ShPos = 7.5*cm;
+  G4double ShPos = 0*cm;
 
   G4Box* sShield = new G4Box("shield",
                     ShThick/2,ShSize/2,ShSize/2);
@@ -213,12 +235,42 @@ G4VPhysicalVolume* DetectorConstruction::ConstructVolumes()
                                       "Shield");
 
   fPShield = new G4PVPlacement(0,
-                                    G4ThreeVector(ShPos,0.*cm,0.*cm),
-                                    fLShield,
-                                    "Shield",
+                              G4ThreeVector(ShPos,0.*cm,0.*cm),
+                              fLShield,
+                              "Shield",
+                              fLBox,
+                              false,
+                              0);
+
+  // scores
+  G4double ScThick = 0.5*cm;
+  G4double ScSize = 100*cm;
+  G4double ScGap = 2.5*cm;
+  //G4double ScPos = 45*cm;
+  G4double ScPos = (ShThick/2 + ScGap + ScThick/2);
+
+  G4Box* sScore = new G4Box("score",
+                            ScThick/2,ScSize/2,ScSize/2);
+
+  auto fLScore = new G4LogicalVolume(sScore,
+                                      Vacc,
+                                      "Score");
+
+  auto fPScore_r = new G4PVPlacement(0,
+                                    G4ThreeVector(ScPos,0.*cm,0.*cm),
+                                    fLScore,
+                                    "Score_r",
                                     fLBox,
                                     false,
                                     0);
+
+  //auto fPScore_f = new G4PVPlacement(0,
+  //                                  G4ThreeVector(-ScPos,0.*cm,0.*cm),
+  //                                  fLScore,
+  //                                  "Score_f",
+  //                                  fLBox,
+  //                                  false,
+  //                                  0);          
 
   PrintParameters();
   
@@ -266,3 +318,50 @@ void DetectorConstruction::SetSize(G4double value)
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
+void DetectorConstruction::ConstructSDandField()
+{
+  G4SDManager::GetSDMpointer()->SetVerboseLevel(2);
+
+  //define filters
+  auto* F0 = new G4SDParticleWithEnergyFilter("F0",0.*eV,1.*eV);
+  F0->add("neutron");
+  auto* F1 = new G4SDParticleWithEnergyFilter("F1",1*eV,500.*eV);
+  F1->add("neutron");
+  auto* F2 = new G4SDParticleWithEnergyFilter("F2",0.5*keV,1.*keV);
+  F2->add("neutron");
+  auto* F3 = new G4SDParticleWithEnergyFilter("F3",1*keV,500.*keV);
+  F3->add("neutron");
+  auto* F4 = new G4SDParticleWithEnergyFilter("F4",0.5*MeV,1.*MeV);
+  F4->add("neutron");
+  auto* F5 = new G4SDParticleWithEnergyFilter("F5",1.*MeV,2.*MeV);
+  F5->add("neutron");
+  auto* FT = new G4SDParticleFilter("FT");
+  FT->add("neutron");
+
+  //define scores (current) and asign filters
+  auto Score_r = new G4MultiFunctionalDetector("score_r");
+  G4VPrimitiveScorer* re0 = new G4PSPassageCellCurrent("re0");
+  re0->SetFilter(F0);
+  Score_r->RegisterPrimitive(re0);
+  G4VPrimitiveScorer* re1 = new G4PSPassageCellCurrent("re1");
+  re1->SetFilter(F1);
+  Score_r->RegisterPrimitive(re1);
+  G4VPrimitiveScorer* re2 = new G4PSPassageCellCurrent("re2");
+  re2->SetFilter(F2);
+  Score_r->RegisterPrimitive(re2);
+  G4VPrimitiveScorer* re3 = new G4PSPassageCellCurrent("re3");
+  re3->SetFilter(F3);
+  Score_r->RegisterPrimitive(re3);
+  G4VPrimitiveScorer* re4 = new G4PSPassageCellCurrent("re4");
+  re4->SetFilter(F4);
+  Score_r->RegisterPrimitive(re4);
+  G4VPrimitiveScorer* re5 = new G4PSPassageCellCurrent("re5");
+  re5->SetFilter(F5);
+  Score_r->RegisterPrimitive(re5);
+  G4VPrimitiveScorer* reT = new G4PSPassageCellCurrent("reT");
+  reT->SetFilter(FT);
+  Score_r->RegisterPrimitive(reT);
+
+  G4SDManager::GetSDMpointer()->AddNewDetector(Score_r);
+  SetSensitiveDetector("Score",Score_r);
+}

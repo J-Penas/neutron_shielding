@@ -70,6 +70,7 @@ class DetectorConstruction : public G4VUserDetectorConstruction
      G4Material*        GetMaterial()   {return fMaterial;};
      
      void               PrintParameters();
+     void               ConstructSDandField();
                        
   private:
   

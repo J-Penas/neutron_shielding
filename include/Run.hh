@@ -38,6 +38,9 @@
 #include "globals.hh"
 #include <map>
 
+#include "G4Event.hh"
+#include "G4THitsMap.hh"
+
 class DetectorConstruction;
 class G4ParticleDefinition;
 
@@ -56,7 +59,8 @@ class Run : public G4Run
     
     void SetPrimary(G4ParticleDefinition* particle, G4double energy);    
     void EndOfRun(); 
-            
+
+    virtual void RecordEvent(const G4Event*);        
     virtual void Merge(const G4Run*);
    
   private:
@@ -70,6 +74,17 @@ class Run : public G4Run
      G4double  fEmin;
      G4double  fEmax;
     };
+
+    G4int nEvent;
+    G4int re0ID, re1ID, re2ID, re3ID, re4ID, re5ID, reTID;
+    G4THitsMap<G4double> re0;
+    G4THitsMap<G4double> re1;
+    G4THitsMap<G4double> re2;
+    G4THitsMap<G4double> re3;
+    G4THitsMap<G4double> re4;
+    G4THitsMap<G4double> re5;
+    G4THitsMap<G4double> reT;
+    
      
   private:
     DetectorConstruction* fDetector;
