@@ -38,6 +38,7 @@
 #include "globals.hh"
 #include <map>
 
+#include "G4DataVector.hh"
 #include "G4Event.hh"
 #include "G4THitsMap.hh"
 
@@ -76,15 +77,12 @@ class Run : public G4Run
     };
 
     G4int nEvent;
-    G4int re0ID, re1ID, re2ID, re3ID, re4ID, re5ID, reTID;
-    G4THitsMap<G4double> re0;
-    G4THitsMap<G4double> re1;
-    G4THitsMap<G4double> re2;
-    G4THitsMap<G4double> re3;
-    G4THitsMap<G4double> re4;
-    G4THitsMap<G4double> re5;
-    G4THitsMap<G4double> reT;
-    
+    G4int reID;
+    G4int idx;
+    //G4DataVector Edata = G4DataVector(1000, 0.0);
+    std::vector<G4double> Edata;
+    G4int Ndata[81];
+    G4THitsMap<G4double> Hitsdata[81];
      
   private:
     DetectorConstruction* fDetector;
@@ -96,7 +94,9 @@ class Run : public G4Run
         
     G4int    fNbStep1, fNbStep2;
     G4double fTrackLen1, fTrackLen2;
-    G4double fTime1, fTime2;    
+    G4double fTime1, fTime2;
+
+    G4Material* fMaterial;    
 };
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......

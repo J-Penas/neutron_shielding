@@ -320,47 +320,74 @@ void DetectorConstruction::SetSize(G4double value)
 
 void DetectorConstruction::ConstructSDandField()
 {
-  G4SDManager::GetSDMpointer()->SetVerboseLevel(2);
+  G4SDManager::GetSDMpointer()->SetVerboseLevel(1);
+  auto Score_r = new G4MultiFunctionalDetector("score_r");
+
+  G4int idx = 0;
+
+  for (G4int i=-8; i<1; i++) {
+    for (G4int j=1; j<10; j++) {
+
+    //generate names
+    G4String Fname = "F_" + std::to_string(i+8) + "_" + std::to_string(j);
+    G4String Sname = "re" + std::to_string(i+8) + "_" + std::to_string(j);
+    
+    //define filters
+    G4double Felow = j*pow(10,i);
+    G4double Fehigh = (j+1)*pow(10,i);
+    
+    G4SDParticleWithEnergyFilter* Filt;
+    Filt = new G4SDParticleWithEnergyFilter(Fname,Felow*MeV,Fehigh*MeV);
+    Filt->add("neutron");
+
+    //define scores (current) and assign filters
+    G4VPrimitiveScorer* re;
+    re = new G4PSPassageCellCurrent(Sname);
+    re->SetFilter(Filt);
+    Score_r->RegisterPrimitive(re);
+
+    }
+  }
 
   //define filters
-  auto* F0 = new G4SDParticleWithEnergyFilter("F0",0.*eV,1.*eV);
-  F0->add("neutron");
-  auto* F1 = new G4SDParticleWithEnergyFilter("F1",1*eV,500.*eV);
-  F1->add("neutron");
-  auto* F2 = new G4SDParticleWithEnergyFilter("F2",0.5*keV,1.*keV);
-  F2->add("neutron");
-  auto* F3 = new G4SDParticleWithEnergyFilter("F3",1*keV,500.*keV);
-  F3->add("neutron");
-  auto* F4 = new G4SDParticleWithEnergyFilter("F4",0.5*MeV,1.*MeV);
-  F4->add("neutron");
-  auto* F5 = new G4SDParticleWithEnergyFilter("F5",1.*MeV,2.*MeV);
-  F5->add("neutron");
-  auto* FT = new G4SDParticleFilter("FT");
-  FT->add("neutron");
+  //auto* F0 = new G4SDParticleWithEnergyFilter("F0",0.*eV,1.*eV);
+  //F0->add("neutron");
+  //auto* F1 = new G4SDParticleWithEnergyFilter("F1",1*eV,500.*eV);
+  //F1->add("neutron");
+  //auto* F2 = new G4SDParticleWithEnergyFilter("F2",0.5*keV,1.*keV);
+  //F2->add("neutron");
+  //auto* F3 = new G4SDParticleWithEnergyFilter("F3",1*keV,500.*keV);
+  //F3->add("neutron");
+  //auto* F4 = new G4SDParticleWithEnergyFilter("F4",0.5*MeV,1.*MeV);
+  //F4->add("neutron");
+  //auto* F5 = new G4SDParticleWithEnergyFilter("F5",1.*MeV,2.*MeV);
+  //F5->add("neutron");
+  //auto* FT = new G4SDParticleFilter("FT");
+  //FT->add("neutron");
 
   //define scores (current) and asign filters
-  auto Score_r = new G4MultiFunctionalDetector("score_r");
-  G4VPrimitiveScorer* re0 = new G4PSPassageCellCurrent("re0");
-  re0->SetFilter(F0);
-  Score_r->RegisterPrimitive(re0);
-  G4VPrimitiveScorer* re1 = new G4PSPassageCellCurrent("re1");
-  re1->SetFilter(F1);
-  Score_r->RegisterPrimitive(re1);
-  G4VPrimitiveScorer* re2 = new G4PSPassageCellCurrent("re2");
-  re2->SetFilter(F2);
-  Score_r->RegisterPrimitive(re2);
-  G4VPrimitiveScorer* re3 = new G4PSPassageCellCurrent("re3");
-  re3->SetFilter(F3);
-  Score_r->RegisterPrimitive(re3);
-  G4VPrimitiveScorer* re4 = new G4PSPassageCellCurrent("re4");
-  re4->SetFilter(F4);
-  Score_r->RegisterPrimitive(re4);
-  G4VPrimitiveScorer* re5 = new G4PSPassageCellCurrent("re5");
-  re5->SetFilter(F5);
-  Score_r->RegisterPrimitive(re5);
-  G4VPrimitiveScorer* reT = new G4PSPassageCellCurrent("reT");
-  reT->SetFilter(FT);
-  Score_r->RegisterPrimitive(reT);
+  //auto Score_r = new G4MultiFunctionalDetector("score_r");
+  //G4VPrimitiveScorer* re0 = new G4PSPassageCellCurrent("re0");
+  //re0->SetFilter(F0);
+  //Score_r->RegisterPrimitive(re0);
+  //G4VPrimitiveScorer* re1 = new G4PSPassageCellCurrent("re1");
+  //re1->SetFilter(F1);
+  //Score_r->RegisterPrimitive(re1);
+  //G4VPrimitiveScorer* re2 = new G4PSPassageCellCurrent("re2");
+  //re2->SetFilter(F2);
+  //Score_r->RegisterPrimitive(re2);
+  //G4VPrimitiveScorer* re3 = new G4PSPassageCellCurrent("re3");
+  //re3->SetFilter(F3);
+  //Score_r->RegisterPrimitive(re3);
+  //G4VPrimitiveScorer* re4 = new G4PSPassageCellCurrent("re4");
+  //re4->SetFilter(F4);
+  //Score_r->RegisterPrimitive(re4);
+  //G4VPrimitiveScorer* re5 = new G4PSPassageCellCurrent("re5");
+  //re5->SetFilter(F5);
+  //Score_r->RegisterPrimitive(re5);
+  //G4VPrimitiveScorer* reT = new G4PSPassageCellCurrent("reT");
+  //reT->SetFilter(FT);
+  //Score_r->RegisterPrimitive(reT);
 
   G4SDManager::GetSDMpointer()->AddNewDetector(Score_r);
   SetSensitiveDetector("Score",Score_r);

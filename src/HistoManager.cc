@@ -85,6 +85,9 @@ void HistoManager::Book()
     G4int ih = analysisManager->CreateH1(id[k], title[k], nbins, vmin, vmax);
     analysisManager->SetH1Activation(ih, false);
   }
+
+  G4int sph = analysisManager->CreateH1("Sp", "Neutron spectrum", 81, pow(10,-2),9.);
+  analysisManager->SetH1Activation(sph,true);
 }
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
